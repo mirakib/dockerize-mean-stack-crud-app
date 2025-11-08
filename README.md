@@ -65,7 +65,7 @@ This project is a simple CRUD application built using the MEAN stack (MongoDB, E
 
 ## Output Screenshots
 
-![alt text](image.png)
+![Screenshot](image.png)
 
 ## Getting Started
 
