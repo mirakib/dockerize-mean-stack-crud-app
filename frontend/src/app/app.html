@@ -202,32 +202,41 @@
   <div class="content">
     <section class="form-card card">
       <h2>Submit user</h2>
-      <form id="userForm">
+      <form (ngSubmit)="submit($event)">
         <label>
           Name
-          <input type="text" id="name" name="name" required />
+          <input type="text" name="name" [ngModel]="name()" (ngModelChange)="name.set($event)" required />
         </label>
         <label>
           Email
-          <input type="email" id="email" name="email" required />
+          <input type="email" name="email" [ngModel]="email()" (ngModelChange)="email.set($event)" required />
         </label>
         <div style="margin-top:12px; display:flex; gap:8px;">
-          <button type="submit" class="btn primary">Add</button>
-          <button type="button" id="refreshBtn" class="btn">Refresh</button>
+          <button type="submit" class="btn primary">{{ editingId() ? 'Save' : 'Add' }}</button>
+          <button type="button" class="btn" (click)="fetchUsers()">Refresh</button>
         </div>
-        <div id="formMessage" style="margin-top:8px;color:crimson"></div>
+        <div style="margin-top:8px" [style.color]="messageColor()">{{ message() }}</div>
       </form>
     </section>
 
     <!-- List card (right) -->
     <section class="list-card card">
       <h2>Users</h2>
-      <div id="usersList">
-        <p class="muted"></p>
+      <div>
+        <div *ngIf="users().length === 0"><p class="muted">No users yet.</p></div>
+        <div *ngFor="let u of users()" style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.04)">
+          <div>
+            <div style="font-weight:600">{{ u.name }}</div>
+            <div class="muted" style="font-size:0.9rem">{{ u.email }}</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn" (click)="startEdit(u)">Edit</button>
+            <button class="btn" (click)="deleteUser(u._id)">Delete</button>
+          </div>
+        </div>
       </div>
     </section>
   </div>
 </main>
 
 <router-outlet />
-<script src="./app.js"></script>
