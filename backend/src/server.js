@@ -31,19 +31,31 @@ async function connectWithRetry(retries = 5, interval = 3000) {
         useUnifiedTopology: true,
       });
       console.log('Connected to MongoDB');
+      console.log('MONGO_URI:', MONGO_URI);
       return;
     } catch (err) {
       console.error(`MongoDB connection attempt ${i + 1} failed: ${err.message}`);
+      console.error(err);
       await new Promise(r => setTimeout(r, interval));
     }
   }
   console.error('Could not connect to MongoDB after retries');
-  process.exit(1);
+  // do not exit here so the container stays up for debugging; expose dbstate endpoint
 }
 connectWithRetry().catch(console.error);
 
 // Routes - base path: /api/users
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+
+// Debug route: shows mongoose connection state and the configured URI
+app.get('/api/dbstate', (req, res) => {
+  try {
+    const state = mongoose.connection.readyState; // 0 = disconnected, 1 = connected
+    res.json({ readyState: state, uri: MONGO_URI });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // List users
 app.get('/api/users', async (req, res) => {
