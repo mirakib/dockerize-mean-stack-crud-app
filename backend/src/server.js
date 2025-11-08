@@ -6,6 +6,9 @@ const cors = require('cors');
 
 const app = express();
 
+// Enable mongoose debug to log queries (helpful for troubleshooting)
+mongoose.set('debug', true);
+
 // Environment
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://root:rootpassword@db:27017/appdb?authSource=admin';
@@ -69,6 +72,7 @@ app.get('/api/users', async (req, res) => {
 
 // Create user
 app.post('/api/users', async (req, res) => {
+  console.log('POST /api/users body:', req.body);
   try {
     const { name, email } = req.body;
     if (!name || !email) return res.status(400).json({ error: 'name and email required' });
@@ -76,32 +80,37 @@ app.post('/api/users', async (req, res) => {
     await user.save();
     res.status(201).json(user);
   } catch (err) {
+    console.error('POST /api/users error:', err && err.stack ? err.stack : err);
     if (err.code === 11000) {
       return res.status(409).json({ error: 'Email already exists' });
     }
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message, name: err.name });
   }
 });
 
 // Update user
 app.put('/api/users/:id', async (req, res) => {
+  console.log('PUT /api/users/:id', req.params.id, 'body:', req.body);
   try {
     const { name, email } = req.body;
     const user = await User.findByIdAndUpdate(req.params.id, { name, email }, { new: true, runValidators: true });
     if (!user) return res.status(404).json({ error: 'Not found' });
     res.json(user);
   } catch (err) {
+    console.error('PUT /api/users/:id error:', err && err.stack ? err.stack : err);
     res.status(500).json({ error: err.message });
   }
 });
 
 // Delete user
 app.delete('/api/users/:id', async (req, res) => {
+  console.log('DELETE /api/users/:id', req.params.id);
   try {
     const user = await User.findByIdAndDelete(req.params.id);
     if (!user) return res.status(404).json({ error: 'Not found' });
     res.json({ success: true });
   } catch (err) {
+    console.error('DELETE /api/users/:id error:', err && err.stack ? err.stack : err);
     res.status(500).json({ error: err.message });
   }
 });
